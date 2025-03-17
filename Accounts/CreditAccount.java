@@ -1,38 +1,66 @@
 package Accounts;
 
-public class CreditAccount
+import Bank.*;
+import java.util.*;
+import Launchers.*;
+
+public class CreditAccount extends Account implements Payment,Recompense
 {
     private double loan;
+    private static final double CreditLimit = 100000.0;
 
-    public CreditAccount(Bank bank, String accountNumber, String ownerFName, String ownerLName, String ownerEmail, String pin)
+    public CreditAccount(Bank bank, String accountNum, String ownerFName, String ownerLName, String ownerEmail, String pin)
     {
-        super( bank,  accountNumber,  ownerFName,  ownerLName,  ownerEmail,  pin);
-        this.bank = bank;
-        this.accountNumber = accountNumber;
-        this.ownerFName = ownerFName;
-        this.ownerLName = ownerLName;
-        this.ownerEmail = ownerEmail;
-        this.pin = pin;
-        this.transactions = new ArrayList<>();
+        super(bank, accountNum, ownerFName, ownerLName, ownerEmail, pin);
+
     }
     public String getLoanStatement()
     {
-        return ""+Loan;
+        return "Loan: P"+ loan;
     }
-    public static boolean canCredit(double amountAdjustment)
+    public boolean canCredit(double amountAdjustment)
     {
-        return amountAdjustment<Loan;
+        return loan >= amountAdjustment;
     }
     public void adjustLoanAmount(double amountAdjustment)
     {
-        if (canCredit(amountAdjustment)) {
-            Loan -= amountAdjustment;
-            System.out.println("Loan payment successful. Remaining loan: " + getLoanStatement());
-        }
+        loan += amountAdjustment;
     }
+
     public String toString()
     {
-        return "Account Details:\nNumber: "+this.accountNumber+"\nName: "+
-                this.ownerLName+", "+this.ownerFName+"\nOutstanding Balance: ₱"+getLoanStatement();
+        return "Credit Account\nAccount Number: " +getAccountNumber()+"\nOwner: "+ getOwnerFullName() + "\n" + getLoanStatement()+ "\n";
+    }
+    //override
+    @Override
+    public boolean pay(Account target_account, double amount_to_pay) throws IllegalAccountType
+    {
+        if (!(target_account instanceof CreditAccount || target_account instanceof SavingsAccount))
+        {
+            throw new IllegalAccountType("Credit accounts cannot pay to other credit accounts.");
+        }
+        else
+        {
+         if (loan >= amount_to_pay)
+         {
+             adjustLoanAmount(-amount_to_pay); //check the payment amount from the loan
+             System.out.println("\\u001B[32mPayment successful.\\u001B[0m");
+             return true;
+         }
+         else
+         {
+             System.out.println("\u001B[31mLoan account insufficient. Please Retry.\u001B[0m");
+         }  return false;
+        }
+    }
+
+    // Recompenses a specified amount from the loan, reducing the total loan amount
+    @Override
+    public boolean recompense(double amount){
+        if (amount <= 0 || amount > loan){
+            return false; // Recompense amount is invalid
+        }
+        adjustLoanAmount(-amount); // Deducts the recompense amount from the loan
+        return true;
     }
 }

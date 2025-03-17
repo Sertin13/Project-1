@@ -1,6 +1,10 @@
 package Main;
 
-import java.util.Scanner;
+import Accounts.*;
+import Bank.*;
+import Launchers.*;
+
+import java.util.*;
 
 public class Main
 {
@@ -19,6 +23,13 @@ public class Main
 
     public static void main(String[] args)
     {
+        Bank BDO = new Bank(1234, "BDO", "092830");
+        BankLauncher.addBank(BDO);
+        CreditAccount cred=new CreditAccount(BDO,"1234","Johnny","Bravo","bravo@gmail.com","0987");
+        BDO.addNewAccount(cred);
+        SavingsAccount savingsAccount=new SavingsAccount(BDO, "1112","Johnny","Sins","sinns@gmail.com","12324",10000);
+        BDO.addNewAccount(savingsAccount);
+
         while (true)
         {
             showMenuHeader("Main Menu");
@@ -40,11 +51,13 @@ public class Main
             else if (getOption() == 2)
             {
                 // TODO: Complete Bank option
+                BankLauncher.bankLogin();
             }
             // Create New Bank
             else if (getOption() == 3)
             {
                 // TODO: Complete this portion...
+                BankLauncher.createNewBank();
             }
             else if (getOption() == 4)
             {
@@ -154,5 +167,11 @@ public class Main
     public static void showMenuHeader(String menuTitle)
     {
         System.out.printf("<---- %s ----->\n", menuTitle);
+    }
+
+
+    public static void print(String s)
+    {
+        System.out.println(s);
     }
 }
