@@ -12,12 +12,12 @@ public class SavingAccountLauncher extends AccountLauncher {
     public static void login(SavingsAccount acc)
     {
         loggedAccount=acc;
-        print("Login to "+loggedAccount.getAccountNumber()+" success...\n");
+        Main.print("Login to "+loggedAccount.getAccountNumber()+" success...\n");
     }
     public static void logout()
     {
         loggedAccount=null;
-        print("Logout success...\n");
+        Main.print("Logout success...\n");
     }
 
     //MENU in SavingAccountLauncher
@@ -35,21 +35,30 @@ public class SavingAccountLauncher extends AccountLauncher {
                 Main.setOption();
                 //Show balance
                 if (Main.getOption() == 1) {
+                    System.out.println("Current Balance: ₱" + loggedAccount.getBalance());
                 }
                 //Deposit
                 else if (Main.getOption() == 2) {
                     System.out.print("Enter Deposit amount: ");
-                    int amount = input.nextInt();
+                    int depositAmount = input.nextInt();
                     input.nextLine();
-                    depositProcess(amount);
+                    depositProcess(depositAmount);
                 }
                 //Withdraw
-                else if (Main.getOption() == 3)
-                {
+                else if (Main.getOption() == 3) {
+                    System.out.print("Enter Withdrawal amount: ");
+                    int withdrawAmount = input.nextInt();
+                    input.nextLine();
+                    withdrawProcess(withdrawAmount);
                 }
                 //Fund Transfer
-                else if (Main.getOption() == 4)
-                {
+                else if (Main.getOption() == 4) {
+                    System.out.print("Enter Target Account Number: ");
+                    String targetAccNum = input.next();
+                    System.out.print("Enter Amount to Transfer: ");
+                    int transferAmount = input.nextInt();
+                    input.nextLine();
+                    fundTransferProcess(targetAccNum, transferAmount);
                 }
                 //Show Transactions
                 else if (Main.getOption() == 5)
@@ -68,29 +77,40 @@ public class SavingAccountLauncher extends AccountLauncher {
 
     }
 
-    private static void depositProcess(double amount)
-    {
+    private static void depositProcess(double amount) {
         //Test
         // Implementation logic here
-        System.out.println("Processing deposit of: ₱" + amount);
+        if (amount > 0) {
+            acc.deposit(amount);
+            System.out.println("Processing deposit of: ₱" + amount);
+        }
     }
 
-    private static void withdrawProcess(double amount)
-    {
+    private static void withdrawProcess(double amount) {
         //Test
         // Implementation logic here
-        System.out.println("Processing withdrawal of: ₱" + amount);
+        if (amount > 0 && acc.getBalance() >= amount) {
+            acc.withdraw(amount);
+            System.out.println("Processing withdrawal of: ₱" + amount);
+        }
+
     }
 
     private static void fundTransferProcess(String targetAccNum, double amount)
     {
         //Test
         // Implementation logic here
-        System.out.println("Transferring ₱" + amount + "To Account: " + recipientacc);
+        if (amount > 0 && acc.getBalance() >= amount) {
+            boolean success = acc.transferFunds(targetAccNum, amount);
+            if (success) {
+                System.out.println("Transferring ₱" + amount + "to Account: " + targetAccNum);
+            }
+        }
+    }
 
     protected static Account getLoggedAccount()
     {
-        Account check =AccountLauncher.getLoggedAccount();
+        Account check = AccountLauncher.getLoggedAccount();
         if(check!=null)
         {
             if(check.getClass().isInstance(SavingsAccount.class))
