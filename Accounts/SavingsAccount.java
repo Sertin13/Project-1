@@ -21,13 +21,18 @@ public class SavingsAccount extends Account
 
     public String getAccountBalance()
     {
-        return String.format("Account Balance: %2.f",this.balance);
+        return String.format("Account Balance: ₱%.2f",this.balance);
     }
 
-    private boolean hasEnoughBalance(double amount)
-    {
-        return this.balance >= amount   ;
+    private boolean hasEnoughBalance(double amount) {
+        return this.balance >= amount;
     }
+
+    // Getter method
+    public boolean getHasEnoughBalance(double amount) {
+        return hasEnoughBalance(amount);
+    }
+
 
     private boolean insufficientBalance(double amount)
     {
@@ -35,6 +40,7 @@ public class SavingsAccount extends Account
         {
             Main.print("Account has insufficient Balance.");
         }
+        return false;
     }
 
 
@@ -47,10 +53,15 @@ public class SavingsAccount extends Account
         this.balance+=amount;
     }
 
+    //getter
+    public void updateAccountBalance(double amount) {
+        adjustAccountBalance(amount); // Calls the private method to adjust balance
+    }
+
 
     public String toString()
     {
-        return String.format("Account Number: %s\n%s\nOwner: %s",getAccountNumber(),getAccountBalance(),getOwnerFullName());
+        return String.format("Account Number: %s\n%s\nOwner: %s",getAccountNumber(),getAccountBalance(),getOwnerFullName() + "\n");
     }
 
     //Additional Methods

@@ -4,38 +4,41 @@ package Launchers;
 
 import Accounts.*;
 import Bank.*;
-import Launchers.*;
+
 import Main.*;
 
 
 
-public class CreditAccountLauncher extends AccountLauncher {
-
-    Class<CreditAccount> creditAccountClass = CreditAccount.class;
+public class CreditAccountLauncher extends AccountLauncher
+{
+    public static void credAccountInit(CreditAccount loggedAccount) throws IllegalAccountType {
+        Class<CreditAccount> creditAccountClass = CreditAccount.class;
         if(loggedAccount !=null)
 
-    {
-        Main.showMenuHeader("Credit Account Menu");
-        Main.showMenu(41);
-        Main.setOption();
-        //"Show Credits", "Pay", "Recompense", "Show Transactions", "Logout"
-        switch (Main.getOption()) {
-            case 1 -> {
+        {
+            Main.showMenuHeader("Credit Account Menu");
+            Main.showMenu(41);
+            Main.setOption();
+            //"Show Credits", "Pay", "Recompense", "Show Transactions", "Logout"
+            switch (Main.getOption()) {
+                case 1 -> {
 
-            }
-            case 2 -> {
-                creditPaymentProcess(loggedAccount);
-            }
-            case 3 -> {
-                loggedAccount.getTransactionsInfo();
+                }
+                case 2 ->
+                {
+                    creditPaymentProcess(loggedAccount);
+                }
+                case 3 ->
+                {
+                    loggedAccount.getTransactionInfo();
+                }
             }
         }
-    }
         else
 
-    {
+        {
         Main.print("Invalid account");
-    }
+        }
 }
 
 private static void creditPaymentProcess(CreditAccount loggedAccount) throws IllegalAccountType {
@@ -53,8 +56,8 @@ private static void creditPaymentProcess(CreditAccount loggedAccount) throws Ill
         double amountToPay = amountField.getFieldValue();
 
         // Find the target account and attempt the payment
-        Account targetAccount = BankLauncher.findaccount(accountNumber);
-        double processingFee = loggedAccount.getBANK().getProcessingFee();
+        Account targetAccount = BankLauncher.findAccount(accountNumber);
+        double processingFee = loggedAccount.getBank().getProcessingFee();
         double payAmountWithFee = amountToPay + processingFee;
         boolean paySuccess = loggedAccount.pay(targetAccount, payAmountWithFee);
 
@@ -77,11 +80,14 @@ private static void creditPaymentProcess(CreditAccount loggedAccount) throws Ill
 //        }
     }
 
-    protected static CreditAccount getLoggedAccount()
-    {
-//        if (AccountLauncher.getLoggedAccount() instanceof CreditAccount) {
-//            return (CreditAccount) AccountLauncher.getLoggedAccount();
-//        }
-        return null;
+    protected static CreditAccount getLoggedAccount() {
+        Account check = AccountLauncher.getLoggedAccount(); // Get the logged account
+
+        if (check instanceof CreditAccount) {
+            return (CreditAccount) check; // Return the CreditAccount if valid
+        }
+
+        return null; // If it's not a CreditAccount, return null
     }
+
 }

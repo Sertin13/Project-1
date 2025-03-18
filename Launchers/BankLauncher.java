@@ -25,7 +25,13 @@ public class BankLauncher {
     {
         return BANKS;
     }
-
+    public static void setBankSession(Bank bank)
+    {
+        if(bank!=null)
+        {
+            loggedBank=bank;
+        }
+    }
 
     //menu in BankLauncher
     public static void bankInit()
@@ -70,7 +76,32 @@ public class BankLauncher {
                         }
                     }
                     //New Accounts
-                    case 2->{}
+                    case 2->
+                    {
+                     //New account creation
+                     Main.showMenuHeader("Select Account Type");
+                     Main.showMenu(33);
+                     Main.setOption();
+                     //new Credit Account
+                        if(Main.getOption() == 1)
+                        {
+                            CreditAccount newCredA = loggedBank.createNewCreditAccount();
+                            if(newCredA!=null)
+                            {
+                                loggedBank.addNewAccount(newCredA);
+                            }
+                        }
+                        //new Saving Account
+                        else if (Main.getOption() == 2)
+                        {
+                            SavingsAccount newSaveA = loggedBank.createNewSavingsAccount();
+                            if(newSaveA!=null)
+                            {
+                                loggedBank.addNewAccount(newSaveA);
+                            }
+                        }
+                        else {Main.print("Invalid Option");}
+                    }
                     case 3-> {
                         logout();
                         break Init;
@@ -86,33 +117,59 @@ public class BankLauncher {
 
     }
 
-    private static void showAccounts()
-    {
-        while(true)
-        {
+//    private static void showAccounts()
+//    {
+//        while(true)
+//        {
+//            Main.showMenuHeader("Show Accounts");
+//            Main.showMenu(32);
+//            String show = Main.prompt("Enter Choice: ", true);
+//            //Credit Accounts, Savings Accounts, All Accounts, Go Back
+//            switch (show) {
+//                case "1":
+//                    loggedBank.showAccounts(CreditAccount.class);
+//                    break;
+//                case "2":
+//                    loggedBank.showAccounts(SavingsAccount.class);
+//                    break;
+//                case "3":
+//                    loggedBank.showAccounts(Account.class);
+//                    break;
+//                case "4":
+//                    return;//exit method
+//                default:
+//                    Main.print("Invalid Input!\n");
+//                    break;
+//            }
+//        }
+//
+//    }
+    private static void showAccounts() {
+        final String CREDIT = "1", SAVINGS = "2", ALL = "3", EXIT = "4";
+        //Credit Accounts, Savings Accounts, All Accounts, Go Back
+
+        while (true) {
             Main.showMenuHeader("Show Accounts");
             Main.showMenu(32);
             String show = Main.prompt("Enter Choice: ", true);
-            //Credit Accounts, Savings Accounts, All Accounts, Go Back
-            switch (show) {
-                case "1":
-                    loggedBank.showAccounts(CreditAccount.class);
-                    break;
-                case "2":
-                    loggedBank.showAccounts(SavingsAccount.class);
-                    break;
-                case "3":
-                    loggedBank.showAccounts(Account.class);
-                    break;
-                case "4":
-                    return;//exit method
-                default:
-                    Main.print("Invalid Input!\n");
-                    break;
+
+            if (show.equals(EXIT)) return; // Exit immediately
+
+            Class<? extends Account> accountType = switch (show) {
+                case CREDIT -> CreditAccount.class;
+                case SAVINGS -> SavingsAccount.class;
+                case ALL -> Account.class;
+                default -> null;
+            };
+
+            if (accountType == null) {
+                Main.print("Invalid Input!\n");
+            } else {
+                loggedBank.showAccounts(accountType);
             }
         }
-
     }
+
 
     public static void getshowAccounts()
     {

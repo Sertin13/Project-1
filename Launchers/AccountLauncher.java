@@ -1,30 +1,30 @@
 package Launchers;
 
-import Main.*;
 import Accounts.*;
+import Main.*;
 import Bank.*;
 
 import java.util.Scanner;
-public class AccountLauncher
-{
 
+public class AccountLauncher {
     private static Account loggedAccount;
-    private static  Bank assocBank;
+    private static Bank assocBank;
     private static final Scanner input = new Scanner(System.in);
 
-    private static Boolean isLoggedIn()
+    //Methods
+    private static boolean isLoggedIn()
     {
         return loggedAccount != null;
     }
-    public static void accountLogin() throws IllegalAccountType
-    {
+
+    public static void accountLogin() throws IllegalAccountType {
         Main:
         while(true)
         {
-            Bank loginBank = selectBank();
+            Bank loginBank=selectBank();
             if(loginBank!=null)
             {
-                BankLauncher.setLogSession(loginBank);
+                BankLauncher.setBankSession(loginBank);
                 if(BankLauncher.getLoggedBank()!=null)
                 {
                     Main.showMenuHeader("Select Account Type");
@@ -38,7 +38,7 @@ public class AccountLauncher
                         while(true)
                         {
                             tries+=1;
-                            String accnum = Main.prompt("Enter Account Number: ",true);
+                            String accnum=Main.prompt("Enter Account Number: ",true);
                             Account found = BankLauncher.getLoggedBank().getBankAccount(BankLauncher.getLoggedBank(), accnum);
 
 
@@ -94,9 +94,9 @@ public class AccountLauncher
             }
         }
     }
-    }
 
-    private static void selectBank()
+    //Done
+    private static Bank selectBank()
     {
         Main.showMenuHeader("Bank Selection");
         BankLauncher.showBanksMenu();
@@ -113,7 +113,8 @@ public class AccountLauncher
         return null;
     }
 
-    private static void setLogSession()
+    //Done
+    private static void setLogSession(Account account)
     {
         if(account!=null)
         {
@@ -126,6 +127,7 @@ public class AccountLauncher
         }
     }
 
+    //Done
     private static void destroyLogSession()
     {
         if (loggedAccount != null) {
@@ -134,24 +136,25 @@ public class AccountLauncher
         }
         else {
             System.out.println("No active session to log out.");
-    }
-        //Use in Account Login
-    public static Account checkCredentials(String accountNum, String pin)
-        {
-            Account found=BankLauncher.findaccount(accountNum);
-            if(found!=null)
-            {
-                if(found.getPin().equals(pin))
-                {
-                    return found;
-                }
-            }
-            return null;
         }
+    }
+
+    //Use in Account Login
+    public static Account checkCredentials(String accountNum, String pin)
+    {
+        Account found=BankLauncher.findAccount(accountNum);
+        if(found!=null)
+        {
+            if(found.getPin().equals(pin))
+            {
+                return found;
+            }
+        }
+        return null;
+    }
 
     protected static Account getLoggedAccount()
-        {
-            return loggedAccount;
-        }
-
+    {
+        return loggedAccount;
+    }
 }

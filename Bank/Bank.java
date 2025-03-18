@@ -34,15 +34,12 @@ public class Bank {
     public ArrayList<Account> getBANKACCOUNTS() {
         return BANKACCOUNTS;
     }
-
     public int getID() {
         return ID;
     }
-
     public String getPasscode() {
         return passcode;
     }
-
     public String getName() {
         return name;
     }
@@ -167,6 +164,30 @@ public class Bank {
     @Override
     public String toString() {
         return "Bank Name: " + name + "\nRegistered Accounts: " + BANKACCOUNTS.size();
+    }
+
+    //subclass
+    public class BankComparator implements Comparator<Bank> {
+        @Override
+        public int compare(Bank b1, Bank b2)
+        {
+            return b1.getName().compareTo(b2.getName());
+        }
+    }
+    public class BankCredComparator implements Comparator<Bank>
+    {
+        @Override
+        public int compare(Bank b1, Bank b2)
+        {
+                return b1.getPasscode().compareTo(b2.getPasscode());
+        }
+    }
+    public static class BankIdComparator implements Comparator<Bank> {
+        @Override
+        public int compare(Bank b1, Bank b2)
+        {
+            return Integer.compare(b1.getID(), b2.getID());
+        }
     }
 }
 

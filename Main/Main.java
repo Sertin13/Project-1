@@ -23,7 +23,7 @@ public class Main
 
     public static void main(String[] args)
     {
-        Bank BDO = new Bank(1234, "BDO", "092830");
+        Bank BDO = new Bank(1234, "BDO", "0928");
         BankLauncher.addBank(BDO);
         CreditAccount cred=new CreditAccount(BDO,"1234","Johnny","Bravo","bravo@gmail.com","0987");
         BDO.addNewAccount(cred);
