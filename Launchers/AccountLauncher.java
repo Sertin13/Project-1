@@ -56,7 +56,8 @@ public class AccountLauncher {
                                         setLogSession();
                                         System.out.println("Login Successful!");
                                         System.out.println("Session started for account: " + found.getAccountNumber());
-                                        CreditAccountLauncher.credAccountInit((CreditAccount) found);
+
+                                        CreditAccountLauncher.credAccountInit();
                                         destroyLogSession();
                                         return;
                                     }
