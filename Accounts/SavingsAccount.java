@@ -1,48 +1,39 @@
 package Accounts;
 
 import Bank.*;
-
-import java.util.*;
-import java.sql.Savepoint;
-import Launchers.*;
 import Main.Main;
 
 
-public class SavingsAccount extends Account
-{
 
+public class SavingsAccount extends Account implements  Withdrawal, Deposit, FundTransfer
+{
     private double balance;
 
-    public SavingsAccount(Bank bank, String accountNum, String ownerFName, String ownerLName, String ownerEmail, String pin, double balance)
+    public String showBalance()
     {
-        super(bank, accountNum, ownerFName, ownerLName, ownerEmail, pin);
-        this.balance = balance;
+        return "Remaining Balance: ₱"+ balance;
     }
 
-    public String getAccountBalance()
+    public SavingsAccount(Bank bank, String accountNum, String ownerFName, String ownerLName, String ownerEmail, String pin, double initialDeposit)
+    {
+        super(bank, accountNum, ownerFName, ownerLName, ownerEmail, pin);
+        this.balance = initialDeposit ;
+    }
+
+    public String getAccountBalanceState()
     {
         return String.format("Account Balance: ₱%.2f",this.balance);
     }
 
-    private boolean hasEnoughBalance(double amount) {
+    private boolean hasEnoughBalance(double amount)
+    {
         return this.balance >= amount;
     }
 
-    // Getter method
-    public boolean getHasEnoughBalance(double amount) {
-        return hasEnoughBalance(amount);
-    }
-
-
-    private boolean insufficientBalance(double amount)
+    private void insufficientBalance()
     {
-        if(this.balance<amount)
-        {
-            Main.print("Account has insufficient Balance.");
-        }
-        return false;
+        Main.print("Account has insufficient Balance.");
     }
-
 
     private void adjustAccountBalance(double amount)
     {
@@ -53,29 +44,70 @@ public class SavingsAccount extends Account
         this.balance+=amount;
     }
 
-    //getter
-    public void updateAccountBalance(double amount) {
-        adjustAccountBalance(amount); // Calls the private method to adjust balance
+    public String toString() {
+        return String.format("Account Number: %s\n%s\nOwner: %s",
+                getAccountNumber(), getAccountBalanceState(), getOwnerFullName());
     }
 
 
-    public String toString()
-    {
-        return String.format("Account Number: %s\n%s\nOwner: %s",getAccountNumber(),getAccountBalance(),getOwnerFullName() + "\n");
-    }
+
 
     //Additional Methods
-    public void transfer(Account account, double amount)throws IllegalAccountType
+    @Override
+    public boolean transfer(Account account, double amount)throws IllegalAccountType
     {
-        if(account!=null&&hasEnoughBalance(amount)&&account.getClass().isInstance(SavingsAccount.class))
-        {
-            adjustAccountBalance(-amount);
-            addNewTransaction(this.getAccountNumber(),Transaction.Transactions.FundTransfer,"Transferred Amount: "+amount+" to Recipient: "+account.getAccountNumber());
+        if (!(account instanceof Account)) {
+            throw new IllegalAccountType("Cannot transfer funds to non Savings Account!");
         }
+
+        SavingsAccount account1 = (SavingsAccount) account;
+
+        if (hasEnoughBalance(amount)) {
+            account1.adjustAccountBalance(amount);
+            adjustAccountBalance(-amount);
+            addNewTransaction(this.getAccountNumber(), Transaction.Transactions.FundTransfer, "Transferred Amount: " + amount + " to Recipient: " + account.getAccountNumber());
+            account.addNewTransaction(account.getAccountNumber(), Transaction.Transactions.FundTransfer, "Received ₱" + amount + " from " + account.getAccountNumber());
+            return true;
+        }
+        insufficientBalance();
+        return false;
     }
 
-    public void transfer(Bank bank, Account account, double amount)
+
+    @Override
+    public boolean transfer(Bank bank, Account account, double amount)
     {
-        //
+        return false;
+    }
+
+    @Override
+    public boolean cashDeposit(double amount) {
+        if (amount > BankLauncher.getLoggedBank().getDepositLimit()) {
+            System.out.println("Deposit amount exceeds the bank's limit.");
+            return false;
+        }
+        this.adjustAccountBalance(amount);
+        return true;
+    }
+
+    @Override
+    public boolean withdrawal(double amount) {
+        if(balance>=amount)
+        {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    public double getAccountBalance(){
+        return balance;
+    }
+
+    public Bank getBank(){
+        return BankLauncher.getLoggedBank();
     }
 }
+
+
+

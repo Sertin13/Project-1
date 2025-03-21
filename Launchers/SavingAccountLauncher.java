@@ -5,131 +5,210 @@ import Bank.*;
 import java.util.*;
 import Main.*;
 
-public class AccountLauncher {
-    private static Account loggedAccount;
-    private static Bank assocBank;
+public class SavingAccountLauncher extends AccountLauncher
+{
+
     private static final Scanner input = new Scanner(System.in);
 
-    private static boolean isLoggedIn() {
-        return loggedAccount != null;
-    }
+    //MENU in SavingAccountLauncher
+    public static void savingsAccountInit(SavingsAccount found) throws IllegalAccountType {
+        if (found != null) {
+            while (true) {
+                Main.showMenuHeader("Savings Account Menu");
+                Main.showMenu(51);
+                Main.setOption();
 
-    public static void accountLogin() throws IllegalAccountType {
-        while (true) {
-            assocBank = selectBank();
-            if (assocBank == null) {
-                Main.print("Bank Not Found");
-                return;
-            }
-            
-            BankLauncher.setBankSession(assocBank);
-            if (BankLauncher.getLoggedBank() == null) {
-                Main.print("Failed to log into the bank.");
-                return;
-            }
-            
-            Main.showMenuHeader("Select Account Type");
-            Main.showMenu(33);
-            Main.setOption();
-            
-            if (Main.getOption() == 1) {
-                handleAccountLogin(CreditAccount.class);
-            } else if (Main.getOption() == 2) {
-                handleAccountLogin(SavingsAccount.class);
-            } else {
-                Main.print("Invalid Input!");
-                return;
-            }
-        }
-    }
+                // Show balance
+                if (Main.getOption() == 1) {
+                    Main.print(Objects.requireNonNull(getLoggedAccount()).showBalance());
+                }
+                // Deposit
+                else if (Main.getOption() == 2) {
+                    System.out.print("Enter Deposit amount: ");
+                    int amount = input.nextInt();
+                    input.nextLine();
+                    depositProcess(amount);
+                }
+                // Withdraw
+                else if (Main.getOption() == 3) {
+                    System.out.print("Enter Withdraw amount: ");
+                    int amount = input.nextInt();
+                    input.nextLine();
+                    withdrawProcess(-amount);
+                }
+                // Fund Transfer
+                else if (Main.getOption() == 4) {
+                    transfer:
+                    while (true) {
+                        Main.showMenuHeader("Fund Transfer");
+                        Main.print("[1] Account to Account Fund Transfer\n[2] Bank to Bank Fund Transfer\n[3] Return");
+                        String choice = Main.prompt("Enter Choice: ", true);
 
-    private static <T extends Account> void handleAccountLogin(Class<T> accountType) {
-        int attempts = 0;
-        
-        while (attempts < 3) {
-            String accNum = Main.prompt("Enter Account Number: ", true);
-            Account found = assocBank.getBankAccount(BankLauncher.getLoggedBank(), accNum);
-            
-            if (accountType.isInstance(found)) {
-                if (validatePin(found)) {
-                    loggedAccount = found;
-                    setLogSession();
-                    
-                    if (found instanceof CreditAccount) {
-                        CreditAccountLauncher.credAccountInit();
-                    } else if (found instanceof SavingsAccount) {
-                        SavingAccountLauncher.savingsAccountInit((SavingsAccount) found);
+                        // Account to Account Transfer
+                        if (choice.equals("1")) {
+                            Main.showMenuHeader("Find Target Account");
+                            String accNum = Main.prompt("Enter Account Number: ", true);
+                            Account search = BankLauncher.findAccount(accNum);
+
+                            SavingsAccount target = (SavingsAccount) search;
+                            if (target != null) {
+                                if (target.getAccountNumber().equals(found.getAccountNumber())) {
+                                    Main.print("Cannot transfer funds to yourself!");
+                                    break transfer;
+                                }
+
+                                Main.print("Found Account: " + target.getAccountNumber());
+                                double amount = Double.parseDouble(Main.prompt("Enter amount: ", true));
+                                boolean foundCheck = found.transfer(target, amount);
+
+                                if (foundCheck) {
+                                    Main.print("Successfully sent ₱" + amount + " to " + target.getAccountNumber());
+                                }
+                                break transfer;
+                            }
+                            Main.print("Account " + accNum + " not found!");
+                            break transfer;
+                        }
+                        // Bank to Bank Transfer
+                        else if (choice.equals("2")) {
+                            bankLogin:
+                            while (true) {
+                                Bank targetBank = null;
+                                while (targetBank == null) {
+                                    BankLauncher.showBanksMenu();
+                                    int bankID = Integer.parseInt(Main.prompt("Enter Target Bank ID(0 - Exit): ", true));
+                                    Bank currentBank = BankLauncher.getLoggedBank();
+
+                                    if (currentBank.getID() == bankID) {
+                                        Main.print("Target Bank must not be the current Bank!\nSelect another Bank!");
+                                        break;
+                                    }
+                                    if (bankID == 0) {
+                                        break;
+                                    }
+                                    for (Bank b : BankLauncher.getBankList()) {
+                                        if (b.getID() == bankID) {
+                                            targetBank = b;
+                                        }
+                                    }
+                                }
+
+                                if (targetBank != null) {
+                                    SavingsAccount targetAccount = null;
+                                    int attempts = 0;
+
+                                    finding:
+                                    while (true) {
+                                        attempts++;
+                                        if (attempts == 4) {
+                                            Main.print("Too many unsuccessful attempts");
+                                            break;
+                                        }
+
+                                        String targetAccNum = Main.prompt("Enter Target Account Number: ", true);
+                                        for (Account account : targetBank.getBANKACCOUNTS()) {
+                                            if (account.getAccountNumber().equals(targetAccNum)) {
+                                                if (account instanceof SavingsAccount) {
+                                                    targetAccount = (SavingsAccount) account;
+                                                    break finding;
+                                                }
+                                            }
+                                        }
+                                        Main.print("Account not found!");
+                                    }
+
+                                    if (targetAccount != null) {
+                                        Main.print("Found Account: " + targetAccount.getAccountNumber());
+                                        double amount = Double.parseDouble(Main.prompt("Enter amount: ", true));
+                                        boolean foundCheck = found.withdrawal(amount);
+                                        boolean check = targetAccount.cashDeposit(amount);
+
+                                        if (!foundCheck) {
+                                            Main.print("Insufficient Balance");
+                                            break transfer;
+                                        } else if (check) {
+                                            Main.print("Successfully sent ₱" + amount + " to " + targetAccount.getAccountNumber());
+                                            found.addNewTransaction(found.getAccountNumber(), Transaction.Transactions.FundTransfer, "Sent ₱" + amount + " to " + targetAccount.getAccountNumber());
+                                            targetAccount.addNewTransaction(targetAccount.getAccountNumber(), Transaction.Transactions.FundTransfer, "Received ₱" + amount + " from " + found.getAccountNumber());
+                                            break transfer;
+                                        }
+                                        Main.print("Fund Transfer Unsuccessful!");
+                                    }
+                                    Main.print("Account not Found!");
+                                }
+                                break;
+                            }
+                        }
+                        // Exit Fund Transfer
+                        else if (choice.equals("3")) {
+                            break;
+                        } else {
+                            Main.print("Invalid input!");
+                        }
                     }
-                    
-                    destroyLogSession();
-                    return;
                 }
-                
-                Main.print("Too many unsuccessful attempts! Account locked.");
-                return;
-            }
-            
-            attempts++;
-            Main.print("Invalid Account! Attempts left: " + (3 - attempts));
-        }
-        Main.print("Too many unsuccessful attempts!");
-    }
-    
-    private static boolean validatePin(Account account) {
-        int attempts = 0;
-        while (attempts < 3) {
-            String pin = Main.prompt("Enter PIN: ", true).trim();
-            if (String.valueOf(account.getPin()).trim().equals(pin)) {
-                Main.print("Login Successful!");
-                return true;
-            }
-            attempts++;
-            Main.print("Invalid PIN! Attempts left: " + (3 - attempts));
-        }
-        return false;
-    }
-
-    private static Bank selectBank() {
-        Main.showMenuHeader("Bank Selection");
-        BankLauncher.showBanksMenu();
-        
-        System.out.print("Enter Bank ID: ");
-        try {
-            int bankId = input.nextInt();
-            input.nextLine(); // Consume newline
-            for (Bank b : BankLauncher.getBankList()) {
-                if (b.getID() == bankId) {
-                    return b;
+                // Show Transactions
+                else if (Main.getOption() == 5) {
+                    Main.print(found.getTransactionsInfo());
+                }
+                // Logout
+                else if (Main.getOption() == 6) {
+                    break;
+                } else {
+                    Main.print("Invalid input");
                 }
             }
-        } catch (Exception e) {
-            input.nextLine(); // Clear invalid input
-            Main.print("Invalid input! Please enter a valid Bank ID.");
-        }
-        return null;
-    }
-
-    private static void setLogSession() {
-        if (loggedAccount != null) {
-            System.out.println("Session started for account: " + loggedAccount.getAccountNumber());
         }
     }
 
-    private static void destroyLogSession() {
-        if (loggedAccount != null) {
-            System.out.println("Logging out: " + loggedAccount.getAccountNumber());
-            loggedAccount = null;
-        } else {
-            System.out.println("No active session to log out.");
+    private static  void depositProcess(double amount)
+    {
+        System.out.println("Processing deposit of: ₱" + amount);
+        boolean check= Objects.requireNonNull(getLoggedAccount()).cashDeposit(amount);
+        if(check){
+            Main.print("Deposit Successful!");
+            SavingsAccount account = getLoggedAccount();
+            account.addNewTransaction(account.getAccountNumber(),Transaction.Transactions.Deposit,"Deposit amount of ₱"+amount+" to Account: "+account.getAccountNumber());
+        }
+
+
+    }
+
+
+    public static void withdrawProcess(double amount)
+    {
+        System.out.println("Processing withdrawal of: ₱" + amount);
+        SavingsAccount account = getLoggedAccount();
+        if (account != null)
+        {
+            boolean check= account.withdrawal(-amount);
+            if(check)
+            {
+                Main.print("Withdrawal Successful!");
+                account.addNewTransaction(account.getAccountNumber(), Transaction.Transactions.Withdraw, "Withdraw amount of ₱"+amount+" from Account: "+account.getAccountNumber());
+            }
+            else
+            {
+                Main.print("Withdrawal unsuccessful!\nInsufficient Balance");
+            }
         }
     }
 
-    public static Account checkCredentials(String accountNum, String pin) {
-        Account found = BankLauncher.findAccount(accountNum);
-        return (found != null && found.getPin().equals(pin)) ? found : null;
+    private static void fundTransferProcess(String recipientAcc, double amount)
+    {
+        System.out.println("Transferring ₱" + amount + "To Account: " + recipientAcc);
     }
 
-    protected static Account getLoggedAccount() {
-        return loggedAccount;
+    protected static SavingsAccount getLoggedAccount()
+    {
+        Account check = AccountLauncher.getLoggedAccount();
+        if (check instanceof SavingsAccount)
+        {
+            return (SavingsAccount) check;
+
+        }
+            System.out.println("DEBUG: No SavingsAccount found for logged user.");
+            return null;
     }
 }
+

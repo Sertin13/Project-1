@@ -20,13 +20,10 @@ public class Account
         this.OwnerLName = ownerLName;
         this.OwnerEmail = ownerEmail;
         this.Pin = pin;
+        this.Transactions=new ArrayList<>();
 
     }
     //methods add
-    public Bank getBank()
-    {
-        return Bank;
-    }
 
     public String getPin()
     {
@@ -43,19 +40,29 @@ public class Account
         return OwnerFName + " " + OwnerLName;
     }
 
+    public Bank getBANK(){
+        return Bank;
+    }
+
     public void addNewTransaction(String accountNum, Transaction.Transactions type, String description)
     {
         Transaction newTransaction= new Transaction(accountNum,type,description);
         this.Transactions.add(newTransaction);
     }
 
-    public String getTransactionInfo()
+    public String getTransactionsInfo()
     {
         Main.showMenuHeader("Transactions");
+
         StringBuilder result= new StringBuilder();
+        if(Transactions.isEmpty())
+        {
+            result.append("No Transactions");
+            return result.toString();
+        }
         for(Transaction transaction:this.Transactions)
         {
-            String result1 = String.format("Account Number: "+transaction.accountNumber+"\tTransaction Type: "+transaction.transactionType+"\tDescription: "+transaction.description);
+            String result1=String.format("Account Number: "+transaction.accountNumber+"\tTransaction Type: "+transaction.transactionType+"\tDescription: "+transaction.description+"\n");
             result.append(result1);
         }
         return result.toString();
@@ -66,4 +73,7 @@ public class Account
         return String.format("Account Owner: %s\n",this.getOwnerFullName());
     }
 
+    public String getOwnerEmail() {
+        return OwnerEmail;
+    }
 }

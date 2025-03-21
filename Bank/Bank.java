@@ -2,14 +2,13 @@ package Bank;
 
 import Accounts.*;
 import Main.*;
-import Launchers.BankLauncher;
 import java.util.*;
 
 public class Bank {
     private int ID;
     private String name;
     private String passcode;
-    private double DEPOSITLIMIT = 12000.0, WITHDRAWLIMIT = 12000.0, CREDITLIMIT = 24000.0;
+    private double DEPOSITLIMIT, WITHDRAWLIMIT, CREDITLIMIT;
     private double processingFee = 10.0;
     private ArrayList<Account> BANKACCOUNTS = new ArrayList<>();
 
@@ -17,6 +16,9 @@ public class Bank {
         this.ID = ID;
         this.name = name;
         this.passcode = passcode;
+        this.DEPOSITLIMIT = 12000.0;
+        this.WITHDRAWLIMIT = 12000.0;
+        this.CREDITLIMIT = 24000.0;
 
     }
 
@@ -44,9 +46,7 @@ public class Bank {
         return name;
     }
 
-    public double getProcessingFee() {
-        return processingFee;
-    }
+
 
 
     public <T> void showAccounts(Class<T> accountType) {
@@ -160,11 +160,25 @@ public class Bank {
         return false;
     }
 
+
     // Convert Bank object to a readable string format
     @Override
     public String toString() {
         return "Bank Name: " + name + "\nRegistered Accounts: " + BANKACCOUNTS.size();
     }
+
+    public double getDepositLimit() {
+        return DEPOSITLIMIT;
+    }
+
+    public double getCreditLimit() {
+        return CREDITLIMIT;
+    }
+
+    public double getProcessingFee() {
+        return processingFee;
+    }
+
 
     //subclass
     public class BankComparator implements Comparator<Bank> {
