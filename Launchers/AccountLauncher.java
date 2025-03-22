@@ -44,28 +44,33 @@ public class AccountLauncher {
         int attempts = 0;
         
         while (attempts < 3) {
-            String accNum = Main.prompt("Enter Account Number: ", true);
-            Account found = assocBank.getBankAccount(BankLauncher.getLoggedBank(), accNum);
-            
-            if (accountType.isInstance(found)) {
-                if (validatePin(found)) {
-                    loggedAccount = found;
-                    setLogSession();
-                    
-                    if (found instanceof CreditAccount) {
-                        CreditAccountLauncher.credAccountInit();
-                    } else if (found instanceof SavingsAccount) {
-                        SavingAccountLauncher.savingsAccountInit((SavingsAccount) found);
+                String accNum = Main.prompt("Enter Account Number: ", true);
+                try {
+                    Account found = assocBank.getBankAccount(BankLauncher.getLoggedBank(), accNum);
+
+                    if (accountType.isInstance(found)) {
+                        if (validatePin(found)) {
+                            loggedAccount = found;
+                            setLogSession();
+
+                            if (found instanceof CreditAccount) {
+                                CreditAccountLauncher.credAccountInit();
+                            } else if (found instanceof SavingsAccount) {
+                                SavingAccountLauncher.savingsAccountInit((SavingsAccount) found);
+                            }
+
+                            destroyLogSession();
+                            return;
+                        }
+
+                        Main.print("Too many unsuccessful attempts! Account locked.");
+                        return;
                     }
-                    
-                    destroyLogSession();
-                    return;
-                }
-                
-                Main.print("Too many unsuccessful attempts! Account locked.");
+            } catch (IllegalAccountType e) {
+                Main.print("Error: Invalid account type. Please try again.");
                 return;
             }
-            
+
             attempts++;
             Main.print("Invalid Account! Attempts left: " + (3 - attempts));
         }
