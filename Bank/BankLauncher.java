@@ -1,9 +1,8 @@
 package Bank;
 
-import java.sql.Savepoint;
+//import java.sql.Savepoint;
 import Main.*;
 import Accounts.*;
-
 import java.util.*;
 
 public class BankLauncher {
@@ -44,34 +43,8 @@ public class BankLauncher {
 
                 switch (Main.getOption()) {
                     case 1 -> showAccounts(); // Show Accounts
-
-                    case 2 -> { // New Accounts
-                        Main.showMenuHeader("Select Account Type");
-                        Main.showMenu(33);
-                        Main.setOption();
-
-                        switch (Main.getOption()) {
-                            case 1 -> { // New Credit Account
-                                CreditAccount newCredit = loggedBank.createNewCreditAccount();
-                                if (newCredit != null) {
-                                    loggedBank.addNewAccount(newCredit);
-                                }
-                            }
-                            case 2 -> { // New Savings Account
-                                SavingsAccount newSavings = loggedBank.createNewSavingsAccount();
-                                if (newSavings != null) {
-                                    loggedBank.addNewAccount(newSavings);
-                                }
-                            }
-                            default -> Main.print("Invalid Option");
-                        }
-                    }
-
-                    case 3 -> { // Log Out
-                        logout();
-                        break Init;
-                    }
-
+                    case 2 -> createNewAccount(); // New Accounts
+                    case 3 -> { logout(); break Init; } // Log Out
                     default -> Main.print("Invalid Option. Please try again.");
                 }
             } else {
@@ -159,13 +132,9 @@ public class BankLauncher {
     public static void createNewBank() {
         Main.showMenuHeader("Create New Bank");
 
-        while (true) {
+        while (true)
+        {
             try {
-                int bankID = Integer.parseInt(Main.prompt("Enter Bank ID: ", true));
-                if (BANKS.stream().anyMatch(b -> b.getID() == bankID)) {
-                    Main.print("Bank ID already exists! Try again.");
-                    continue;
-                }
 
                 String bankName = Main.prompt("Enter Bank Name: ", true).trim();
                 if (bankName.isEmpty()) {
@@ -173,18 +142,68 @@ public class BankLauncher {
                     continue;
                 }
 
-                String bankPIN = Main.prompt("Enter 4-Digit PIN: ", true);
-                if (!bankPIN.matches("\\d{4}")) {
-                    Main.print("Invalid PIN! Must be exactly 4 digits.");
+                String bankIdInput = Main.prompt("Enter Bank ID: ", true).trim();
+                System.out.println("DEBUG: Received Bank ID input -> '" + bankIdInput + "'");
+
+                if (!bankIdInput.matches("\\d+")) { // Ensures only digits
+                    Main.print("Invalid input! Bank ID must be a whole number.");
                     continue;
                 }
 
-                addBank(new Bank(bankID, bankName, bankPIN));
+                int bankID = Integer.parseInt(bankIdInput);
+
+                if (BANKS.stream().anyMatch(b -> b.getID() == bankID)) {
+                    Main.print("Bank ID already exists! Try again.");
+                    continue;
+                }
+
+//                String bankPIN = Main.prompt("Enter 4-Digit PIN: ", true);
+//                if (!bankPIN.matches("\\d{4}")) {
+//                    Main.print("Invalid PIN! Must be exactly 4 digits.");
+//                    continue;
+//                }
+
+                // Validate deposit limit
+                double depositLimit = Double.parseDouble(Main.prompt("Enter Deposit Limit: ", true).trim());
+                if (depositLimit <= 0) {
+                    Main.print("Invalid deposit limit! Must be a positive number.");
+                    continue;
+                }
+
+
+                // Validate withdrawal limit
+                double withdrawalLimit = Double.parseDouble(Main.prompt("Enter Withdrawal Limit: ", true).trim());
+                if (withdrawalLimit <= 0) {
+                    Main.print("Invalid withdrawal limit! Must be a positive number.");
+                    continue;
+                }
+
+
+
+                // Validate credit limit
+                double creditLimit = Double.parseDouble(Main.prompt("Enter Credit Limit: ", true).trim());
+                if (creditLimit <= 0) {
+                    Main.print("Invalid credit limit! Must be a positive number.");
+                    continue;
+                }
+
+                // Validate interest rate
+                double interestRate = Double.parseDouble(Main.prompt("Enter Interest Rate (%): ", true).trim());
+                if (interestRate <= 0 || interestRate > 100) {
+                    Main.print("Invalid interest rate! Must be between 0.1% and 100%.");
+                    continue;
+                }
+
+                // Create and add the new bank
+//                return bankPIN
+                addBank(new BankID, bankName, bankPIN, depositLimit, withdrawalLimit, creditLimit, interestRate));
                 Main.print("Bank successfully created!");
                 return;
+
             } catch (NumberFormatException e) {
                 Main.print("Invalid input! Bank ID must be a number.");
             }
+
         }
     }
 

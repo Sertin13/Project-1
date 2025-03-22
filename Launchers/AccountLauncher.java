@@ -162,15 +162,7 @@ public class AccountLauncher {
     //Done
     private static void setLogSession()
     {
-//        if(account!=null)
-//        {
-//            loggedAccount = account;
             System.out.println("Session started for account: " + loggedAccount.getAccountNumber());
-//        }
-//        else
-//        {
-//            Main.print("Invalid Account!");
-//        }
     }
 
     //Done
