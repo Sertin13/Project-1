@@ -30,6 +30,7 @@ public class Bank {
         this.WITHDRAWLIMIT = WL;
         this.CREDITLIMIT = CL;
         this.processingFee = PF;
+        BankLauncher.incrementID();
     }
 
     //Bank Methods

@@ -1,5 +1,6 @@
 package Bank;
 
+//import java.sql.Savepoint;
 import Main.*;
 import Accounts.*;
 import java.util.*;
@@ -9,26 +10,58 @@ public class BankLauncher {
     private static final List<Bank> BANKS = new ArrayList<>();
     private static Bank loggedBank = null;
     private static final Scanner input = new Scanner(System.in);
+    private static int IDCount=0;
 
-    public static Bank getLoggedBank() { return loggedBank; }
-    public static boolean isLogged() { return loggedBank != null; }
-    public static List<Bank> getBankList() { return BANKS; }
+    // Getters
+    public static Bank getLoggedBank()
+    {
+        return loggedBank;
+    }
+    public static boolean isLogged()
+    {
+        return loggedBank != null;
+    }
+    public static List<Bank> getBankList()
+    {
+        return BANKS;
+    }
 
-    public static void setBankSession(Bank bank) { if (bank != null) loggedBank = bank; }
+    // Setters
+    public static void setBankSession(Bank bank)
+    {
+        if (bank != null) loggedBank = bank;
+    }
 
-    public static void bankInit() {
-        while (loggedBank != null) {
-            Main.showMenuHeader("Bank Menu");
-            Main.showMenu(31);
-            Main.setOption();
+    public static void incrementID()
+    {
+        IDCount+=1;
+    }
+    public int getIDCount() {
+        return IDCount;
+    }
 
-            switch (Main.getOption()) {
-                case 1 -> showAccounts();
-                case 2 -> createNewAccount();
-                case 3 -> { logout(); return; }
-                default -> Main.print("Invalid Option. Please try again.");
+    // Bank Initialization
+    public static void bankInit()
+    {
+        Init:
+        while (true) {
+            if (loggedBank != null) {
+                Main.showMenuHeader("Bank Menu");
+                Main.showMenu(31);
+                Main.setOption();
+
+                switch (Main.getOption()) {
+                    case 1 -> showAccounts(); // Show Accounts
+                    case 2 -> createNewAccount(); // New Accounts
+                    case 3 -> { logout(); break Init; } // Log Out
+                    default -> Main.print("Invalid Option. Please try again.");
+                }
+            } else {
+                Main.print("No bank selected!");
+                break;
             }
         }
+
     }
 
     private static void showAccounts() {
@@ -74,17 +107,19 @@ public class BankLauncher {
 
                 System.out.print("Enter Bank ID: ");
                 int bankID = input.nextInt();
-                input.nextLine();
-                
+                input.nextLine(); // Clear buffer
+
                 Bank selectedBank = BANKS.stream().filter(b -> b.getID() == bankID).findFirst().orElse(null);
                 if (selectedBank == null) {
                     Main.print("Bank not found!");
                     continue;
                 }
 
+                // 3 attempts for PIN entry
                 for (int attempts = 0; attempts < 3; attempts++) {
                     System.out.print("Enter 4-Digit PIN: ");
                     String bankPin = input.nextLine();
+
                     if (bankPin.matches("\\d{4}") && selectedBank.getPasscode().equals(bankPin)) {
                         setBankSession(selectedBank);
                         bankInit();
@@ -93,7 +128,7 @@ public class BankLauncher {
                     Main.print(attempts == 2 ? "Too many unsuccessful attempts" : "Invalid PIN, try again.");
                 }
             } else if (Main.getOption() == 2) {
-                return;
+                return; // Exit login process
             }
         }
     }
@@ -103,33 +138,38 @@ public class BankLauncher {
         Main.print("Logged out successfully!\n");
     }
 
-    public static void createNewBank() {
+    public static void createNewBank()
+    {
         Main.showMenuHeader("Create New Bank");
-        while (true) {
-            try {
-                String bankName = Main.prompt("Enter Bank Name: ", true).trim();
-                if (bankName.isEmpty()) continue;
-                
-                int bankID = Integer.parseInt(Main.prompt("Enter Bank ID: ", true).trim());
-                if (BANKS.stream().anyMatch(b -> b.getID() == bankID)) continue;
-                
-                String bankPIN = Main.prompt("Enter 4-Digit PIN: ", true);
-                if (!bankPIN.matches("\\d{4}")) continue;
-
-                double depositLimit = Double.parseDouble(Main.prompt("Enter Deposit Limit: ", true).trim());
-                double withdrawalLimit = Double.parseDouble(Main.prompt("Enter Withdrawal Limit: ", true).trim());
-                double creditLimit = Double.parseDouble(Main.prompt("Enter Credit Limit: ", true).trim());
-                double interestRate = Double.parseDouble(Main.prompt("Enter Interest Rate (%): ", true).trim());
-
-                addBank(new Bank(bankID, bankName, bankPIN, depositLimit, withdrawalLimit, creditLimit, interestRate));
-                Main.print("Bank successfully created!");
-                return;
-
-            } catch (NumberFormatException e) {
-                Main.print("Invalid input! Bank ID must be a number.");
-            }
+        if (input == null){
+            throw new IllegalStateException("Scanner is not initialized.");
         }
+        System.out.print("Enter Bank Name: ");
+        String name = input.hasNextLine() ? input.nextLine().trim() : "";
+
+        System.out.print("Enter Bank Passcode (Enter - Set to default): ");
+        String passcode = input.hasNextLine() ? input.nextLine().trim() : "1234";
+
+        System.out.print("Enter Deposit Limit(Enter - Set to default): ");
+        double depositLimit = input.hasNextDouble() ? input.nextDouble() : 50000.0;
+        if (input.hasNextLine()) input.nextLine(); // Consume newline
+
+        System.out.print("Enter Withdraw Limit(Enter - Set to default): ");
+        double withdrawLimit = input.hasNextDouble() ? input.nextDouble() : 50000.0;
+        if (input.hasNextLine()) input.nextLine();
+
+        System.out.print("Enter Credit Limit (Enter - Set to default): ");
+        double creditLimit = input.hasNextDouble() ? input.nextDouble() : 100000.0;
+        if (input.hasNextLine()) input.nextLine();
+
+        System.out.print("Enter Processing Fee (Enter - Set to default): ");
+        double processingFee = input.hasNextDouble() ? input.nextDouble() : 10.0;
+        if (input.hasNextLine()) input.nextLine();
+
+        addBank(new Bank(IDCount, name, passcode, depositLimit, withdrawLimit, creditLimit, processingFee));
+
     }
+
 
     public static void showBanksMenu() {
         if (BANKS.isEmpty()) {
@@ -139,20 +179,31 @@ public class BankLauncher {
             BANKS.forEach(bank -> System.out.println("Bank ID: " + bank.getID() + " - " + bank.getName()));
         }
     }
-    
-    public static void addBank(Bank bank) { if (bank != null) BANKS.add(bank); }
+    //return to private
+    public static void addBank(Bank bank) {
+        if (bank != null) BANKS.add(bank);
+    }
 
     public static Bank getBank(Comparator<Bank> bankComparator, Bank bank) {
         return BANKS.stream().filter(b -> bankComparator.compare(b, bank) == 0).findFirst().orElse(null);
     }
 
     public static Account findAccount(String accountNumber) {
-        return BANKS.stream()
-                .map(bank -> bank.getBankAccount(bank, accountNumber))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+        for(Bank bank:BANKS)
+        {
+            Account account=loggedBank.getBankAccount(bank,accountNumber);
+            if(account!=null && account.getAccountNumber().equals(accountNumber))
+            {
+                return account;
+            }
+
+        }
+        return null;
     }
 
-    public static int bankSize() { return BANKS.size(); }
+    public static int bankSize() {
+        return BANKS.size();
+    }
+
+
 }
