@@ -1,78 +1,90 @@
 package Accounts;
 
 import Bank.*;
+
 import Main.Main;
 
-
-
-public class SavingsAccount extends Account implements  Withdrawal, Deposit, FundTransfer
+public class SavingsAccount extends Account implements Withdrawal,Deposit,FundTransfer
 {
-    private double balance;
+    private double Balance;
 
     public String showBalance()
     {
-        return "Remaining Balance: ₱"+ balance;
+        return "Remaining Balance: ₱"+Balance;
     }
 
-    public SavingsAccount(Bank bank, String accountNum, String ownerFName, String ownerLName, String ownerEmail, String pin, double initialDeposit)
+    public SavingsAccount(Bank bank, String accountNumber,String pin,String FirstName,String LastName, String Email, double initialDeposit)
     {
-        super(bank, accountNum, ownerFName, ownerLName, ownerEmail, pin);
-        this.balance = initialDeposit ;
+        super(bank, accountNumber, pin, FirstName, LastName, Email);
+        this.Balance=initialDeposit;
     }
 
-    public String getAccountBalanceState()
+    //Methods
+    public String getAccountBalanceStatement()
     {
-        return String.format("Account Balance: ₱%.2f",this.balance);
+        return String.format("Account Balance: ₱%.2f",this.Balance);
     }
 
     private boolean hasEnoughBalance(double amount)
     {
-        return this.balance >= amount;
+        return Balance >= amount;
     }
+
 
     private void insufficientBalance()
     {
-        Main.print("Account has insufficient Balance.");
+            Main.print("Account has insufficient Balance.");
+
     }
 
     private void adjustAccountBalance(double amount)
     {
-        if(this.balance+amount<0)
+        if(this.Balance+amount<0)
         {
-            this.balance=0;
+            this.Balance=0;
         }
-        this.balance+=amount;
+        this.Balance+=amount;
     }
 
-    public String toString() {
-        return String.format("Account Number: %s\n%s\nOwner: %s",
-                getAccountNumber(), getAccountBalanceState(), getOwnerFullName());
+    public String toString()
+    {
+        return String.format("Savings Account\nAccount Number: %s\n%s\nOwner: %s\n",getAccountNumber(),getAccountBalanceStatement(),getOwnerFullName());
     }
-
-
-
 
     //Additional Methods
     @Override
-    public boolean transfer(Account account, double amount)throws IllegalAccountType
-    {
-        if (!(account instanceof Account)) {
-            throw new IllegalAccountType("Cannot transfer funds to non Savings Account!");
+    public boolean transfer(Account targetAccount, double amount) throws IllegalAccountType {
+        if (!(targetAccount instanceof SavingsAccount)) {
+            throw new IllegalAccountType("Transfers are only allowed to Savings Accounts.");
         }
 
-        SavingsAccount account1 = (SavingsAccount) account;
-
-        if (hasEnoughBalance(amount)) {
-            account1.adjustAccountBalance(amount);
-            adjustAccountBalance(-amount);
-            addNewTransaction(this.getAccountNumber(), Transaction.Transactions.FundTransfer, "Transferred Amount: " + amount + " to Recipient: " + account.getAccountNumber());
-            account.addNewTransaction(account.getAccountNumber(), Transaction.Transactions.FundTransfer, "Received ₱" + amount + " from " + account.getAccountNumber());
-            return true;
+        if (!hasEnoughBalance(amount)) {
+            insufficientBalance();
+            return false;
         }
-        insufficientBalance();
-        return false;
+
+        SavingsAccount recipientAccount = (SavingsAccount) targetAccount;
+        double processingFee = getBank().getProcessingFee();
+        double totalDeduction = amount + processingFee;
+
+        // Adjust balances
+        adjustAccountBalance(-totalDeduction);  // Deduct amount + fee from sender
+        recipientAccount.adjustAccountBalance(amount);  // Add amount to recipient
+
+        // Record transactions for both sender and recipient
+        addNewTransaction(this.getAccountNumber(), Transaction.Transactions.FundTransfer,
+                String.format("Transferred ₱%.2f to Account: %s | Processing Fee: ₱%.2f", amount, targetAccount.getAccountNumber(), processingFee));
+
+        targetAccount.addNewTransaction(targetAccount.getAccountNumber(), Transaction.Transactions.FundTransfer,
+                String.format("Received ₱%.2f from Account: %s", amount, this.getAccountNumber()));
+
+        System.out.println("Transfer successful!");
+        return true;
     }
 
+    
+
+    
 
     @Override
     public boolean transfer(Bank bank, Account account, double amount)
@@ -82,32 +94,45 @@ public class SavingsAccount extends Account implements  Withdrawal, Deposit, Fun
 
     @Override
     public boolean cashDeposit(double amount) {
-        if (amount > BankLauncher.getLoggedBank().getDepositLimit()) {
-            System.out.println("Deposit amount exceeds the bank's limit.");
+        Bank loggedBank = BankLauncher.getLoggedBank();
+
+        if (amount <= 0) {
+            System.out.println("Invalid deposit amount. Please enter a positive value.");
             return false;
         }
-        this.adjustAccountBalance(amount);
+
+        if (amount > loggedBank.getDepositLimit()) {
+            System.out.println("Deposit amount exceeds the bank's limit of ₱" + loggedBank.getDepositLimit() + ".");
+            return false;
+        }
+
+        double processingFee = getBank().getProcessingFee();
+        adjustAccountBalance(amount);   // Add deposit amount
+        adjustAccountBalance(-processingFee);  // Deduct processing fee
+
+        addNewTransaction(this.getAccountNumber(), Transaction.Transactions.Deposit,
+                String.format("Deposited ₱%.2f | Processing Fee: ₱%.2f", amount, processingFee));
+
+        System.out.println("Cash deposit successful! Amount deposited: ₱" + amount);
         return true;
     }
 
+
     @Override
     public boolean withdrawal(double amount) {
-        if(balance>=amount)
+        if(Balance>=amount)
         {
-            balance -= amount;
+            Balance -= amount;
             return true;
         }
         return false;
     }
 
-    public double getAccountBalance(){
-        return balance;
+    public double getAccountBalance() {
+        return Balance;
     }
 
-    public Bank getBank(){
+    public Bank getBank() {
         return BankLauncher.getLoggedBank();
     }
 }
-
-
-

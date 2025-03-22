@@ -1,17 +1,16 @@
 package Launchers;
 
-
-
 import Accounts.*;
 import Bank.*;
+import Launchers.*;
 import Main.*;
 
-
+import java.util.Objects;
 
 public class CreditAccountLauncher extends AccountLauncher
 {
-    public static void credAccountInit() throws IllegalAccountType
-    {
+    //Check if correct implementation & Simplyfied the code structure thus easy to read
+    public static void credAccountInit() throws IllegalAccountType {
         cred:
         while(true)
         {
@@ -44,40 +43,41 @@ public class CreditAccountLauncher extends AccountLauncher
 
     }
 
-    private static void creditPaymentProcess(CreditAccount creditAccount) throws IllegalAccountType
-    {
-        int tryies=0;
-        while(true)
-        {
-            tryies+=1;
-            if(tryies==2){break;}
-            Field<String, String> targetaccountnumberField = new Field<String,String>("targetAccount",
-                    String.class, " ", new Field.StringFieldValidator());
-            targetaccountnumberField.setFieldValue("Enter target account number: ");
-            String accountNumber = targetaccountnumberField.getFieldValue();
+    private static void creditPaymentProcess(CreditAccount creditAccount) throws IllegalAccountType {
+        int attempts = 0;
 
-            // Field for entering the amount to pay
-            Field<Double, Double> amountField = new Field<Double,Double>("amount",
-                    Double.class, 0.0, new Field.DoubleFieldValidator());
-            amountField.setFieldValue("Enter target account number: "); // Mistake in prompt text, should be "Enter amount to pay:"
+        while (attempts < 2) {
+            attempts++;
+
+            // Input field for payment amount
+            Field<Double, Double> amountField = new Field<Double, Double>("amount", Double.class, 0.0, new Field.DoubleFieldValidator());
+            amountField.setFieldValue("Enter Amount: ");
             double amountToPay = amountField.getFieldValue();
 
-            // Find the target account and attempt the payment
-            Account targetAccount = BankLauncher.findAccount(accountNumber);
-            CreditAccount loggedCreditAccount=getLoggedAccount();
-            double processingFee = loggedCreditAccount.getBANK().getProcessingFee();
-            double payAmountWithFee = amountToPay + processingFee;
-            boolean paySuccess = loggedCreditAccount.pay(targetAccount, payAmountWithFee);
+            CreditAccount loggedCreditAccount = getLoggedAccount();
 
-            if (paySuccess){
-                System.out.println("Transfer of ₱" + amountToPay + " processed successfully.");
-            }
-            else{
-                System.out.println("Insufficient Balance. Please Retry.");
+            if (loggedCreditAccount != null) {
+                double processingFee = loggedCreditAccount.getBANK().getProcessingFee();
+                double totalAmount = amountToPay + processingFee;
+                boolean paymentSuccess = loggedCreditAccount.pay(creditAccount, totalAmount);
+
+                if (paymentSuccess) {
+                    System.out.printf("Transfer of ₱%.2f processed successfully.%n", amountToPay);
+                    return; // Exit method after successful payment
+                } else {
+                    System.out.println("Insufficient balance. Please try again.");
+                }
+            } else {
+                System.out.println("No logged-in credit account found!");
+                return; // Exit if no logged account is found
             }
         }
 
+        System.out.println("Maximum attempts reached. Payment process terminated.");
     }
+
+
+    //Check if correct implementation
     private static void creditRecompenseProcess(CreditAccount creditAccount)
     {
         Field<Double, Double> amountField = new Field<Double,Double>("amount",
@@ -94,20 +94,19 @@ public class CreditAccountLauncher extends AccountLauncher
         }
     }
 
-    protected static CreditAccount getLoggedAccount()
-    {
+    //Check if correct implementation
+    protected static CreditAccount getLoggedAccount() {
         Bank loggedBank = BankLauncher.getLoggedBank();
-        if (loggedBank != null)
-        {
-            for (Account account : loggedBank.getBANKACCOUNTS())
-            {
-                if (account instanceof CreditAccount)
-                {
-                    return (CreditAccount) account;
-                }
-            }
-        }
-        return null;
-    }
 
+        if (loggedBank == null) {
+            System.out.println("No bank is currently logged in.");
+            return null;
+        }
+
+        return loggedBank.getBANKACCOUNTS().stream()
+                .filter(account -> account instanceof CreditAccount)
+                .map(account -> (CreditAccount) account)
+                .findFirst()
+                .orElse(null);
+    }
 }

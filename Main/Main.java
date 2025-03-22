@@ -21,21 +21,7 @@ public class Main
             Integer.class, -1, new Field.IntegerFieldValidator());
 
     public static void main(String[] args) throws IllegalAccountType {
-        Bank BDO = new Bank(1234, "BDO", "0928");
-        BankLauncher.addBank(BDO);
-        CreditAccount cred=new CreditAccount(BDO,"1234","Johnny","Bravo","bravo@gmail.com","0987");
-        BDO.addNewAccount(cred);
-        SavingsAccount savingsAccount=new SavingsAccount(BDO, "1112","Johnny","Sins","sinns@gmail.com","1111",10000);
-        BDO.addNewAccount(savingsAccount);
-        BDO.addNewAccount(new SavingsAccount(BDO, "1113","Adolf","Hitler", "hitler@gmail.com","1234",0));
 
-        Bank Landbank = new Bank(1112, "Land Bank", "0987");
-        BankLauncher.addBank(Landbank);
-        CreditAccount credL = new CreditAccount(Landbank, "2222", "Lanbanker", "Bravo", "bravo@gmail.com", "0987");
-        Landbank.addNewAccount(credL);
-        SavingsAccount savingsAccountL = new SavingsAccount(Landbank, "22223", "Murcialgo", "Sinns", "sinns@gmail.com", "12324", 10000);
-        Landbank.addNewAccount(savingsAccountL);
-        Landbank.addNewAccount(new SavingsAccount(Landbank, "22224", "Bin laden", "Hitler", "hitler@gmail.com", "1234", 0));
         while (true)
         {
             showMenuHeader("Main Menu");
@@ -50,7 +36,6 @@ public class Main
                 showMenuHeader("Account Login Menu");
                 showMenu(2, 1);
                 setOption();
-                showMenu(getOption(), 1);
                 // TODO: Complete this portion
                 if(getOption()==1)
                 {
@@ -186,10 +171,8 @@ public class Main
     {
         System.out.printf("<---- %s ----->\n", menuTitle);
     }
-
-
-    public static void print(String s)
+    public static void print(String value)
     {
-        System.out.println(s);
+        System.out.println(value);
     }
 }

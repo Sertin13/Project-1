@@ -1,30 +1,27 @@
 package Accounts;
 
 import java.util.*;
-import Main.*;
 import Bank.*;
+import Main.*;
 
-public class Account
-{
-    private Bank Bank;
+public abstract class Account {
+    private Bank BANK;
     private String AccountNumber;
-    private String OwnerFName, OwnerLName, OwnerEmail;
+    private String OwnerFName,OwnerLName, OwnerEmail;
     private String Pin;
-    private ArrayList<Transaction> Transactions;
+    private ArrayList<Transaction> TRANSACTIONS;
 
-    public Account(Bank bank, String accountNum, String ownerFName, String ownerLName, String ownerEmail, String pin)
+    //Methods
+    public Account(Bank bank, String accountNumber,String pin,String FirstName,String LastName, String Email)
     {
-        this.Bank = bank;
-        this.AccountNumber = accountNum;
-        this.OwnerFName = ownerFName;
-        this.OwnerLName = ownerLName;
-        this.OwnerEmail = ownerEmail;
-        this.Pin = pin;
-        this.Transactions=new ArrayList<>();
-
+        this.BANK=bank;
+        this.AccountNumber=accountNumber;
+        this.OwnerFName=FirstName;
+        this.OwnerLName=LastName;
+        this.OwnerEmail=Email;
+        this.Pin=pin;
+        this.TRANSACTIONS=new ArrayList<>();
     }
-    //methods add
-
     public String getPin()
     {
         return this.Pin;
@@ -37,39 +34,40 @@ public class Account
 
     public String getOwnerFullName()
     {
-        return OwnerFName + " " + OwnerLName;
+        return OwnerLName+", "+ OwnerFName;
     }
 
     public Bank getBANK(){
-        return Bank;
+        return BANK;
     }
 
-    public void addNewTransaction(String accountNum, Transaction.Transactions type, String description)
+    public void addNewTransaction(String accountNumber, Transaction.Transactions type, String description)
     {
-        Transaction newTransaction= new Transaction(accountNum,type,description);
-        this.Transactions.add(newTransaction);
+        Transaction newTransaction= new Transaction(accountNumber,type,description);
+        this.TRANSACTIONS.add(newTransaction);
     }
 
-    public String getTransactionsInfo()
-    {
+    public String getTransactionsInfo() {
         Main.showMenuHeader("Transactions");
 
-        StringBuilder result= new StringBuilder();
-        if(Transactions.isEmpty())
-        {
-            result.append("No Transactions");
-            return result.toString();
+        if (TRANSACTIONS.isEmpty()) {
+            return "No Transactions Available.";
         }
-        for(Transaction transaction:this.Transactions)
-        {
-            String result1=String.format("Account Number: "+transaction.accountNumber+"\tTransaction Type: "+transaction.transactionType+"\tDescription: "+transaction.description+"\n");
-            result.append(result1);
-        }
+
+        StringBuilder result = new StringBuilder();
+        TRANSACTIONS.forEach(transaction -> result.append(
+                String.format("Account Number: %s\tTransaction Type: %s\tDescription: %s%n",
+                        transaction.accountNumber,
+                        transaction.transactionType,
+                        transaction.description)
+        ));
+
         return result.toString();
     }
 
 
-    public String toString() {
+    public String toString()
+    {
         return String.format("Account Owner: %s\n",this.getOwnerFullName());
     }
 
